@@ -33,7 +33,7 @@ class CredentialValidatorTest extends Specification {
 
     def "Test should throw exception if credential is null"() {
         when:
-        CredentialValidator.validate(null)
+        CredentialValidator.isValidCredential(null)
         then:
         thrown(IllegalArgumentException)
     }
@@ -46,7 +46,7 @@ class CredentialValidatorTest extends Specification {
         credential.token = "h6Sxot/neQychayvgq+tkg=="
         credential.password = "q30XOAOUVuyD7+zVrIZypQ=="
         when:
-        boolean validated = CredentialValidator.validate(credential)
+        boolean validated = CredentialValidator.isValidCredential(credential)
         then:
         validated == false
     }
