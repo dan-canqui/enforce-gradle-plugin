@@ -4,6 +4,7 @@ import org.fundacionjala.gradle.plugins.enforce.credentialmanagement.CredentialF
 import org.fundacionjala.gradle.plugins.enforce.credentialmanagement.CredentialManagerInput
 import org.fundacionjala.gradle.plugins.enforce.credentialmanagement.CredentialMessage
 import org.fundacionjala.gradle.plugins.enforce.utils.Constants
+import org.fundacionjala.gradle.plugins.enforce.utils.Util
 import org.fundacionjala.gradle.plugins.enforce.wsc.Credential
 
 /**
@@ -16,6 +17,13 @@ class CredentialGiver extends CredentialManagerTask {
     private final String WARNING_TAG = "[Warning]"
     private final String WARNING_MESSAGE = "doesn't exist, \nYou should add credential here using parameter location: " +
                                             "\n\t${'$'}gradle addCredential -Pid=my -Pusername=john@enforce.com -Ppassword=qweasd456fgh -Plocation="
+    private final String VALID_STATUS = "isValid"
+    private final String INVALID_STATUS = "isInvalid"
+    private final String ALL_STATUS = "allStatus"
+
+    private final String VALID_STATUS_MESSAGE = "is valid"
+    private final String INVALID_STATUS_MESSAGE = "is invalid"
+
     /**
      * Sets description and group task
      * @param description is description tasks
@@ -42,14 +50,38 @@ class CredentialGiver extends CredentialManagerTask {
         logger.quiet("*********************************************")
         logger.quiet("                Credentials                  ")
         logger.quiet("*********************************************")
+
         for (Credential credential in credentialFileManager.getCredentials()) {
-            logger.quiet("Id : $credential.id")
-            logger.quiet("User name : $credential.username")
-            logger.quiet("Type : ${getOrganizationType(credential.loginFormat)}")
-            logger.quiet("")
+            if(status.empty) {
+                printCredential(credential)
+            }
+            else {
+
+                try {
+                    if(status == VALID_STATUS || status == ALL_STATUS ) {
+                        CredentialValidator.validateCredential(credential)
+                        printCredential(credential)
+                        logger.quiet("Status: $VALID_STATUS_MESSAGE")
+                    }
+                }
+                catch (Exception e) {
+                    if(status == INVALID_STATUS || status == ALL_STATUS ) {
+                        printCredential(credential)
+                        logger.quiet("Status: $INVALID_STATUS_MESSAGE $e")
+                    }
+                }
+            }
+
         }
         logger.quiet("*********************************************")
         logger.quiet("${CREDENTIAL_LOCATION_INFO} ${getCredentialsFilePath()}")
+    }
+
+    private void printCredential(Credential credential) {
+        logger.quiet("Id : $credential.id")
+        logger.quiet("User name : $credential.username")
+        logger.quiet("Type : ${getOrganizationType(credential.loginFormat)}")
+        logger.quiet("")
     }
 
     /**
