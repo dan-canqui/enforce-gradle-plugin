@@ -6,6 +6,9 @@
 package org.fundacionjala.gradle.plugins.enforce.tasks.credentialmanager
 
 import org.fundacionjala.gradle.plugins.enforce.credentialmanagement.CredentialEncrypter
+import org.fundacionjala.gradle.plugins.enforce.credentialmanagement.CredentialManager
+import org.fundacionjala.gradle.plugins.enforce.credentialmanagement.CredentialMessage
+import org.fundacionjala.gradle.plugins.enforce.utils.Constants
 import org.fundacionjala.gradle.plugins.enforce.wsc.Connector
 import org.fundacionjala.gradle.plugins.enforce.wsc.Credential
 
@@ -19,23 +22,30 @@ class CredentialValidator {
     private static final String NULL_MESSAGE = "Can not validate a null credential"
 
     /**
-     * Validates a encrypt credential on Enforce.
+     * Validates a encrypt/decrypt credential on Enforce.
      *
      * @param credential to be validated.
-     * @return true if it's possible validate the credential, otherwise return false.
      * @exception IllegalArgumentException if credential is null.
      */
-    public static boolean isValidCredential(Credential credential) {
+    public static void validateCredential(Credential credential) {
         if (credential == null) {
             throw new IllegalArgumentException(NULL_MESSAGE)
         }
-        credential = decryptCredential(credential)
-        try {
-            (new Connector(credential.loginFormat)).login(credential)
-        } catch (Exception ex) {
-            return Boolean.FALSE
+        validateCredential(credential, new Connector(credential.loginFormat))
+    }
+
+    /**
+     * Validates a encrypt/decrypt credential on Enforce only available for unit test.
+     *
+     * @param credential to be validated.
+     * @param connector to perform the login with salesforce.
+     */
+    static void validateCredential(Credential credential, Connector connector) {
+        String encrypted = CredentialMessage.ENCRYPTED.value()
+        if (encrypted.equals(credential.type)) {
+            credential = decryptCredential(credential)
         }
-        return Boolean.TRUE
+        connector.login(credential)
     }
 
     /**

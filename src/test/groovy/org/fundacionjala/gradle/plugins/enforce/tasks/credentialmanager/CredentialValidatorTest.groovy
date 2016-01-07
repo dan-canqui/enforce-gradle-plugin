@@ -39,7 +39,8 @@ class CredentialValidatorTest extends Specification {
         connector = Mock(Connector)
         session = Mock(Session)
         connector.login(_) >> { Credential credential ->
-            if (credential.equals(credentialFileManager.getCredentialById("default"))) {
+            if (credential.equals(credentialFileManager.getCredentialById("valid")) ||
+                    credential.equals(credentialFileManager.getCredentialById("validencrypted"))) {
                 return session
             }
             throw new Exception()
@@ -48,17 +49,45 @@ class CredentialValidatorTest extends Specification {
 
     def "Test should throw exception if credential is null"() {
         when:
-        CredentialValidator.isValidCredential(null)
+        CredentialValidator.validateCredential(null)
         then:
         thrown(IllegalArgumentException)
     }
 
-    def "Test should return 'false' if credential is not active"() {
+    def "Test should throw exception if credential is not active"() {
         given:
         Credential credential = credentialFileManager.getCredentialById("invalid")
         when:
-        boolean validated = CredentialValidator.isValidCredential(credential)
+        CredentialValidator.validateCredential(credential, connector)
         then:
-        validated == false
+        thrown(Exception)
+    }
+
+    def "Test should throw if the encrypted credential is not active"() {
+        given:
+        Credential credential = credentialFileManager.getCredentialById("invalidencrypted")
+        when:
+        CredentialValidator.validateCredential(credential, connector)
+        then:
+        thrown(Exception)
+    }
+
+    def "Test should verify that the connection is successful for a activated credential"() {
+        given:
+        Credential credential = credentialFileManager.getCredentialById("valid")
+        when:
+        CredentialValidator.validateCredential(credential, connector)
+        then:
+        1 * connector.login(_)
+    }
+
+
+    def "Test should verify that the connection is successful for a activated encrypted credential"() {
+        given:
+        Credential credential = credentialFileManager.getCredentialById("validencrypted")
+        when:
+        CredentialValidator.validateCredential(credential, connector)
+        then:
+        1 * connector.login(_)
     }
 }
