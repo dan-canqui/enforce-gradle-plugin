@@ -5,26 +5,41 @@
 
 package org.fundacionjala.gradle.plugins.enforce.tasks.credentialmanager
 
+import org.fundacionjala.gradle.plugins.enforce.credentialmanagement.CredentialFileManager
 import org.fundacionjala.gradle.plugins.enforce.wsc.Connector
 import org.fundacionjala.gradle.plugins.enforce.wsc.Credential
 import org.fundacionjala.gradle.plugins.enforce.wsc.Session
 import spock.lang.Shared
 import spock.lang.Specification
 
+import java.nio.file.Paths
+
 class CredentialValidatorTest extends Specification {
     @Shared
+    String path = Paths.get(System.getProperty("user.dir"), "src", "test", "groovy", "org", "fundacionjala", "gradle",
+            "plugins", "enforce", "tasks", "credentialmanager", "resources").toString()
+
+    @Shared
+    String pathCredentials = Paths.get(path, "credentials.dat").toString()
+
+    @Shared
+    String pathSecretKeyGenerated = Paths.get(path, "secretKeyGenerated.text").toString()
+
+    @Shared
+    CredentialFileManager credentialFileManager
+
+    @Shared
     Connector connector
+
     @Shared
     Session session
 
     def setup() {
+        credentialFileManager = new CredentialFileManager(pathCredentials, pathSecretKeyGenerated)
         connector = Mock(Connector)
         session = Mock(Session)
         connector.login(_) >> { Credential credential ->
-            if (credential.id == "default" &&
-                    credential.username == "username@email.com" &&
-                    credential.password == "0bdzKV14J7bs2h1yw01eMQ==" &&
-                    credential.token == "xthkbHWGppQTkrqFhHzpzw==") {
+            if (credential.equals(credentialFileManager.getCredentialById("default"))) {
                 return session
             }
             throw new Exception()
@@ -40,11 +55,7 @@ class CredentialValidatorTest extends Specification {
 
     def "Test should return 'false' if credential is not active"() {
         given:
-        Credential credential = new Credential()
-        credential.id = "invalid"
-        credential.username = "invaliduser@email.com"
-        credential.token = "h6Sxot/neQychayvgq+tkg=="
-        credential.password = "q30XOAOUVuyD7+zVrIZypQ=="
+        Credential credential = credentialFileManager.getCredentialById("invalid")
         when:
         boolean validated = CredentialValidator.isValidCredential(credential)
         then:
