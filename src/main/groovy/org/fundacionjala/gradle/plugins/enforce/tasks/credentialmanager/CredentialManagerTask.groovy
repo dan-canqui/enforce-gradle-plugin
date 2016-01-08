@@ -5,8 +5,10 @@
 
 package org.fundacionjala.gradle.plugins.enforce.tasks.credentialmanager
 
+import org.eclipse.jdt.internal.compiler.impl.Constant
 import org.fundacionjala.gradle.plugins.enforce.credentialmanagement.CredentialManagerInput
 import org.fundacionjala.gradle.plugins.enforce.tasks.ForceTask
+import org.fundacionjala.gradle.plugins.enforce.utils.Constants
 import org.fundacionjala.gradle.plugins.enforce.utils.Util
 
 import java.nio.file.Paths
@@ -14,9 +16,14 @@ import java.nio.file.Paths
 abstract class CredentialManagerTask extends ForceTask {
     private final String SECRET_KEY_PATH = Paths.get(System.properties['user.home'].toString(), 'keyGenerated.txt').toString()
     private final String LOCATION = "location"
+    private final String STATUS = "status"
+    private final String VALID_STATUS = "isValid"
+    private final String INVALID_STATUS = "isInvalid"
+    private final String ALL_STATUS = "allStatus"
 
     public CredentialManagerInput credentialManagerInput
     public String location = 'home'
+    public String status = ""
 
     /**
      * Sets description and group task
@@ -40,6 +47,16 @@ abstract class CredentialManagerTask extends ForceTask {
     void loadLocationParameter() {
         if (Util.isValidProperty(project, LOCATION) && !Util.isEmptyProperty(project, LOCATION)) {
             location = project.properties[LOCATION].toString()
+        }
+
+        String statusTemp = project.properties[STATUS].toString()
+        switch (statusTemp) {
+            case VALID_STATUS : status = VALID_STATUS
+                break
+            case INVALID_STATUS : status = INVALID_STATUS
+                break
+            case Constants.EMPTY : status = ALL_STATUS
+                break
         }
     }
 
