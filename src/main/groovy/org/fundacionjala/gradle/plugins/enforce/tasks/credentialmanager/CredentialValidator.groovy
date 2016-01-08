@@ -6,9 +6,7 @@
 package org.fundacionjala.gradle.plugins.enforce.tasks.credentialmanager
 
 import org.fundacionjala.gradle.plugins.enforce.credentialmanagement.CredentialEncrypter
-import org.fundacionjala.gradle.plugins.enforce.credentialmanagement.CredentialManager
 import org.fundacionjala.gradle.plugins.enforce.credentialmanagement.CredentialMessage
-import org.fundacionjala.gradle.plugins.enforce.utils.Constants
 import org.fundacionjala.gradle.plugins.enforce.wsc.Connector
 import org.fundacionjala.gradle.plugins.enforce.wsc.Credential
 
